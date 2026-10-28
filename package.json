@@ -1,0 +1,36 @@
+{
+  "name": "flashslot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Real-time flash-deal marketplace for last-minute slots with auto-dropping prices and exactly-once selling.",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "local:setup": "npm run local:start && sh scripts/with-local-env.sh npm run db:deploy -w apps/api && sh scripts/with-local-env.sh npm run seed -w apps/api",
+    "local": "npm run local:start && sh scripts/with-local-env.sh npm run dev",
+    "local:seed": "sh scripts/with-local-env.sh npm run seed -w apps/api",
+    "local:start": "sh scripts/local-services.sh start",
+    "local:stop": "sh scripts/local-services.sh stop",
+    "local:status": "sh scripts/local-services.sh status",
+    "docker:setup": "npm run infra:up && npm run db:migrate && npm run seed",
+    "docker": "npm run infra:up && npm run dev",
+    "docker:seed": "npm run seed",
+    "infra:up": "docker compose up -d postgres redis",
+    "infra:down": "docker compose down",
+    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "dev:api": "npm run dev -w apps/api",
+    "dev:web": "npm run dev -w apps/web",
+    "db:migrate": "npm run db:deploy -w apps/api",
+    "seed": "npm run seed -w apps/api",
+    "setup": "npm run docker:setup",
+    "build": "npm run build -w apps/api && npm run build -w apps/web",
+    "stack:up": "docker compose --profile full up --build -d",
+    "stack:seed": "docker compose exec api1 node dist/seed.js",
+    "stack:down": "docker compose --profile full down"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
