@@ -1,0 +1,144 @@
+// FlashSlot data model.
+// Money is stored as integer paise (1 INR = 100 paise) to avoid floating point errors.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  MERCHANT
+  ADMIN
+}
+
+enum Category {
+  SALON
+  FITNESS
+  DINING
+  WELLNESS
+  ENTERTAINMENT
+  CLASSES
+}
+
+enum SlotStatus {
+  DRAFT
+  LIVE
+  HELD
+  SOLD
+  EXPIRED
+  CANCELLED
+}
+
+enum PricingStrategyKind {
+  LINEAR
+  STEP
+  EXPONENTIAL
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  passwordHash  String
+  role          Role           @default(CUSTOMER)
+  isBot         Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  business      Business?
+  bookings      Booking[]
+  notifications Notification[]
+}
+
+model Business {
+  id          String   @id @default(cuid())
+  ownerId     String   @unique
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  category    Category
+  city        String
+  address     String
+  description String
+  isDemo      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  slots       Slot[]
+}
+
+model Slot {
+  id             String              @id @default(cuid())
+  businessId     String
+  business       Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title          String
+  description    String
+  category       Category
+  startsAt       DateTime
+  durationMin    Int
+  basePrice      Int
+  floorPrice     Int
+  strategy       PricingStrategyKind
+  strategyParams Json                @default("{}")
+  liveAt         DateTime?
+  status         SlotStatus          @default(DRAFT)
+  // Optimistic-locking version: every state transition increments it.
+  version        Int                 @default(0)
+  holdUserId     String?
+  holdExpiresAt  DateTime?
+  heldPrice      Int?
+  soldPrice      Int?
+  soldAt         DateTime?
+  isDemo         Boolean             @default(false)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  booking        Booking?
+
+  @@index([status, startsAt])
+  @@index([businessId, status])
+  @@index([status, holdExpiresAt])
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  // UNIQUE: the database itself refuses a second booking for the same slot.
+  slotId         String   @unique
+  slot           Slot     @relation(fields: [slotId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  pricePaid      Int
+  originalPrice  Int
+  paymentRef     String
+  paymentMethod  String
+  idempotencyKey String   @unique
+  createdAt      DateTime @default(now())
+
+  @@index([userId, createdAt])
+}
+
+// Transactional outbox: events are written in the same DB transaction as the state change,
+// then a relay publishes them. Guarantees side effects (notifications) are never lost.
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  type        String
+  payload     Json
+  attempts    Int       @default(0)
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([processedAt, createdAt])
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  body      String
+  link      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+}
