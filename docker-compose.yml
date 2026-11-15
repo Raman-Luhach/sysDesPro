@@ -1,0 +1,73 @@
+# Local dev:   `npm run infra:up`  -> only Postgres + Redis (API and web run on your machine)
+# Full stack:  `npm run stack:up`  -> Postgres, Redis, 2 API instances, Nginx load balancer + web UI on :8080
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: flashslot
+      POSTGRES_PASSWORD: flashslot
+      POSTGRES_DB: flashslot
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashslot"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api1: &api
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment: &apienv
+      PORT: "4000"
+      INSTANCE_ID: api-1
+      RUN_MIGRATIONS: "true"
+      DATABASE_URL: postgresql://flashslot:flashslot@postgres:5432/flashslot?connection_limit=20
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: change-me-in-production
+      HOLD_TTL_SECONDS: "120"
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:4000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api2:
+    <<: *api
+    environment:
+      <<: *apienv
+      INSTANCE_ID: api-2
+      RUN_MIGRATIONS: "false"
+    depends_on:
+      api1: { condition: service_healthy }
+
+  web:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      api1: { condition: service_healthy }
+      api2: { condition: service_healthy }
+
+volumes:
+  pgdata:
