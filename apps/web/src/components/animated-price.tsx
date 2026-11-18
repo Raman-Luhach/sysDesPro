@@ -33,10 +33,11 @@ export function AnimatedPrice({ value, className, showDrop = false }: { value: n
         {showDrop && drop && (
           <motion.span
             key={drop.key}
-            initial={{ opacity: 0, y: 6, scale: 0.8 }}
+            initial={{ opacity: 0, y: 6, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="pointer-events-none absolute -top-5 right-0 whitespace-nowrap rounded-full bg-success px-2 py-0.5 text-xs font-bold text-white"
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+            className="pointer-events-none absolute -top-5 right-0 whitespace-nowrap rounded-full bg-volt px-2 py-0.5 font-mono text-[11px] font-medium leading-4 tracking-normal text-black"
           >
             −{inr(drop.amount)}
           </motion.span>

@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { FlaskConical, ShieldCheck, Store, TrendingDown, User, Zap } from 'lucide-react';
+import { ArrowRight, FlaskConical, Loader2, ShieldCheck, Store, TrendingDown, User, Zap } from 'lucide-react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
+import { EASE, Eyebrow, RevealWords } from '../components/kit';
 import { Logo } from '../components/layout';
 import { Button, Input, Label } from '../components/ui';
 import { useAuth } from '../context/auth';
@@ -16,52 +17,127 @@ function homeFor(user: AppUser): string {
   return '/';
 }
 
+const PHOTO = { backgroundImage: 'url(/img/auth.jpg)' };
+
+/** Photo panel on the left (desktop), form column on the right. */
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
-      <div className="relative hidden overflow-hidden bg-flash p-12 text-white lg:flex lg:flex-col">
-        <div className="absolute -right-32 -top-32 size-[28rem] rounded-full bg-white/10 blur-2xl" />
-        <div className="absolute -bottom-40 -left-20 size-[26rem] rounded-full bg-black/10 blur-2xl" />
-        <Link to="/" className="relative flex items-center gap-2 font-display text-xl font-bold">
-          <span className="grid size-9 place-items-center rounded-xl bg-white/20 backdrop-blur">
-            <Zap className="size-5 fill-white" />
-          </span>
-          FlashSlot
-        </Link>
-        <div className="relative mt-auto">
-          <h2 className="font-display text-5xl font-bold leading-tight">
-            Every empty slot
-            <br />
-            finds its buyer.
-          </h2>
-          <ul className="mt-8 space-y-4 text-white/90">
-            <Feature icon={<TrendingDown className="size-5" />}>Prices drop automatically until someone books</Feature>
-            <Feature icon={<ShieldCheck className="size-5" />}>Each slot sells exactly once, even with 1,000 buyers at the same second</Feature>
-            <Feature icon={<Zap className="size-5" />}>Live updates over WebSockets, no refreshing</Feature>
-          </ul>
+    <div className="grid min-h-screen bg-bg lg:grid-cols-2">
+      <aside className="hidden p-3 lg:sticky lg:top-0 lg:block lg:h-screen">
+        {/* Fallback fill keeps the panel intentional (and dark under white text) if the photo is missing. */}
+        <div className="relative h-full overflow-hidden rounded-[28px] bg-fg text-white dark:bg-surface-2">
+          <motion.div
+            aria-hidden
+            className="absolute inset-0 bg-cover bg-center"
+            style={PHOTO}
+            initial={{ scale: 1.06 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 1.8, ease: EASE }}
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+
+          <div className="relative flex h-full flex-col p-10 xl:p-12">
+            <Logo className="text-white" />
+
+            <LiveChip />
+
+            <div className="mt-auto max-w-xl">
+              <h2 className="font-display text-5xl font-medium leading-[0.98] tracking-[-0.045em] xl:text-6xl">
+                <RevealWords text="Every empty slot" delay={0.2} />{' '}
+                <RevealWords text="finds its buyer." delay={0.35} className="font-serif italic" />
+              </h2>
+              <motion.ul
+                className="mt-10 space-y-3.5 text-[15px] text-white/80"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: EASE, delay: 0.7 }}
+              >
+                <Feature icon={<TrendingDown className="size-4" />}>Prices drop automatically until someone books</Feature>
+                <Feature icon={<ShieldCheck className="size-4" />}>Each slot sells exactly once, even with 1,000 buyers at once</Feature>
+                <Feature icon={<Zap className="size-4" />}>Live updates over WebSockets, no refreshing</Feature>
+              </motion.ul>
+            </div>
+          </div>
         </div>
-      </div>
-      <div className="flex flex-col px-5 py-8 sm:px-12">
-        <Logo className="lg:hidden" />
-        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-10">{children}</div>
+      </aside>
+
+      <div className="flex min-w-0 flex-col px-4 py-5 sm:px-10 lg:py-10">
+        <div className="lg:hidden">
+          <Logo />
+          <div className="relative mt-5 h-40 overflow-hidden rounded-3xl bg-surface-2">
+            <motion.div
+              aria-hidden
+              className="absolute inset-0 bg-cover bg-center"
+              style={PHOTO}
+              initial={{ scale: 1.06 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 1.6, ease: EASE }}
+            />
+          </div>
+        </div>
+        <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center pb-6 pt-10 lg:py-10">{children}</div>
       </div>
     </div>
   );
 }
 
+/** Illustrative live deal floating over the photo. Static content, gentle float. */
+function LiveChip() {
+  return (
+    <motion.div
+      aria-hidden
+      className="absolute right-10 top-[30%] xl:right-12"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.9, ease: EASE, delay: 0.9 }}
+    >
+      <motion.div
+        className="rounded-2xl bg-white/10 px-4 py-3.5 text-white backdrop-blur-md"
+        animate={{ y: [0, -8, 0] }}
+        transition={{ duration: 6, ease: 'easeInOut', repeat: Infinity }}
+      >
+        <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-white/70">
+          <span className="live-dot relative size-1.5 rounded-full bg-brand text-brand" />
+          Live · dropping
+        </div>
+        <div className="mt-2 text-sm font-medium">Deep Tissue Massage</div>
+        <div className="mt-1.5 flex items-center gap-2">
+          <span className="font-display text-2xl font-medium tabular-nums tracking-[-0.03em]">₹1,240</span>
+          <span className="rounded-full bg-volt px-2 py-0.5 text-xs font-medium text-black">↓ 38%</span>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function Feature({ icon, children }: { icon: ReactNode; children: ReactNode }) {
   return (
-    <li className="flex items-start gap-3">
-      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-lg bg-white/15">{icon}</span>
-      <span className="pt-1">{children}</span>
+    <li className="flex items-center gap-3">
+      <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-white/10 text-white">{icon}</span>
+      <span>{children}</span>
     </li>
   );
 }
 
+/** Title + subline block shared by both forms. */
+function FormHead({ eyebrow, title, children }: { eyebrow: string; title: ReactNode; children: ReactNode }) {
+  return (
+    <>
+      <Eyebrow>{eyebrow}</Eyebrow>
+      <h1 className="mt-4 font-display text-5xl font-medium leading-[1] tracking-[-0.04em]">{title}</h1>
+      <p className="mt-3 text-[15px] text-muted">{children}</p>
+    </>
+  );
+}
+
+const textLink = 'font-medium text-fg underline-offset-4 hover:underline';
+
+const enter = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.7, ease: EASE } };
+
 const DEMO = [
-  { label: 'Customer', email: 'customer@flashslot.dev', icon: User, hint: 'Browse & book deals' },
-  { label: 'Merchant', email: 'merchant@flashslot.dev', icon: Store, hint: 'List slots, see revenue' },
-  { label: 'Admin', email: 'admin@flashslot.dev', icon: FlaskConical, hint: 'Concurrency Lab' },
+  { label: 'Customer', email: 'customer@flashslot.dev', icon: User, hint: 'Browse & book deals', tint: 'bg-accent/12 text-accent' },
+  { label: 'Merchant', email: 'merchant@flashslot.dev', icon: Store, hint: 'List slots, see revenue', tint: 'bg-brand/12 text-brand' },
+  { label: 'Admin', email: 'admin@flashslot.dev', icon: FlaskConical, hint: 'Concurrency Lab', tint: 'bg-success/12 text-success' },
 ];
 
 export function LoginPage() {
@@ -92,16 +168,22 @@ export function LoginPage() {
 
   return (
     <AuthShell>
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl font-bold">Sign in</h1>
-        <p className="mt-1 text-sm text-muted">
+      <motion.div {...enter}>
+        <FormHead
+          eyebrow="Welcome back"
+          title={
+            <>
+              Sign <span className="font-serif italic">in</span>
+            </>
+          }
+        >
           New here?{' '}
-          <Link to="/register" className="font-semibold text-brand hover:underline">
+          <Link to="/register" className={textLink}>
             Create an account
           </Link>
-        </p>
+        </FormHead>
 
-        <form onSubmit={submit} className="mt-8 space-y-4">
+        <form onSubmit={submit} className="mt-10 space-y-4">
           <div>
             <Label htmlFor="email">Email</Label>
             <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
@@ -110,32 +192,41 @@ export function LoginPage() {
             <Label htmlFor="password">Password</Label>
             <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
           </div>
-          <Button type="submit" size="lg" className="w-full" loading={busy === 'form'}>
+          <Button type="submit" size="lg" className="mt-2 w-full" loading={busy === 'form'}>
             Sign in
           </Button>
         </form>
 
-        <div className="my-8 flex items-center gap-3 text-xs text-muted">
+        <div className="my-9 flex items-center gap-3">
           <div className="h-px flex-1 bg-border" />
-          ONE-CLICK DEMO ACCOUNTS
+          <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-muted">or try a demo account</span>
           <div className="h-px flex-1 bg-border" />
         </div>
+
         <div className="grid gap-2">
           {DEMO.map((d) => (
             <button
               key={d.email}
+              type="button"
               disabled={!!busy}
               onClick={() => void doLogin(d.email, 'password123', d.email)}
-              className={cn('flex items-center gap-3 rounded-xl border border-border bg-surface p-3 text-left transition-all hover:border-brand/40 hover:bg-surface-2 disabled:opacity-60 cursor-pointer')}
+              className="group flex items-center gap-3.5 rounded-2xl bg-surface-2 p-3 pr-4 text-left transition-colors duration-200 hover:bg-surface-3 disabled:opacity-60 cursor-pointer disabled:cursor-default"
             >
-              <span className="grid size-9 place-items-center rounded-lg bg-surface-2 text-brand">
+              <span className={cn('grid size-10 shrink-0 place-items-center rounded-xl', d.tint)}>
                 <d.icon className="size-4.5" />
               </span>
-              <span className="flex-1">
-                <span className="block text-sm font-semibold">{d.label}</span>
-                <span className="block text-xs text-muted">{d.hint}</span>
+              <span className="min-w-0 flex-1">
+                <span className="flex items-baseline gap-2">
+                  <span className="text-sm font-medium">{d.label}</span>
+                  <span className="truncate text-[13px] text-muted">{d.hint}</span>
+                </span>
+                <span className="mt-0.5 block truncate font-mono text-[11px] text-muted">{d.email}</span>
               </span>
-              {busy === d.email && <span className="size-4 animate-spin rounded-full border-2 border-brand border-t-transparent" />}
+              {busy === d.email ? (
+                <Loader2 className="size-4 shrink-0 animate-spin text-muted" />
+              ) : (
+                <ArrowRight className="size-4 shrink-0 text-muted transition-[transform,color] duration-300 ease-out group-hover:translate-x-1 group-hover:text-fg" />
+              )}
             </button>
           ))}
         </div>
@@ -143,6 +234,11 @@ export function LoginPage() {
     </AuthShell>
   );
 }
+
+const ROLES = [
+  { id: 'CUSTOMER', title: 'I want deals', sub: 'Book last-minute slots', icon: User, tint: 'bg-accent/12 text-accent' },
+  { id: 'MERCHANT', title: 'I run a business', sub: 'Fill my empty slots', icon: Store, tint: 'bg-brand/12 text-brand' },
+] as const;
 
 export function RegisterPage() {
   const { register } = useAuth();
@@ -167,36 +263,44 @@ export function RegisterPage() {
 
   return (
     <AuthShell>
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-        <h1 className="font-display text-3xl font-bold">Create your account</h1>
-        <p className="mt-1 text-sm text-muted">
+      <motion.div {...enter}>
+        <FormHead
+          eyebrow="Get started"
+          title={
+            <>
+              Create your <span className="font-serif italic">account</span>
+            </>
+          }
+        >
           Already have one?{' '}
-          <Link to="/login" className="font-semibold text-brand hover:underline">
+          <Link to="/login" className={textLink}>
             Sign in
           </Link>
-        </p>
+        </FormHead>
 
-        <div className="mt-8 grid grid-cols-2 gap-3">
-          {(
-            [
-              { id: 'CUSTOMER', title: 'I want deals', sub: 'Book last-minute slots', icon: User },
-              { id: 'MERCHANT', title: 'I run a business', sub: 'Fill my empty slots', icon: Store },
-            ] as const
-          ).map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              onClick={() => setRole(r.id)}
-              className={cn(
-                'rounded-xl border p-4 text-left transition-all cursor-pointer',
-                role === r.id ? 'border-brand bg-brand/5 ring-4 ring-brand/10' : 'border-border hover:bg-surface-2',
-              )}
-            >
-              <r.icon className={cn('size-5', role === r.id ? 'text-brand' : 'text-muted')} />
-              <div className="mt-2 text-sm font-semibold">{r.title}</div>
-              <div className="text-xs text-muted">{r.sub}</div>
-            </button>
-          ))}
+        <div className="mt-10 grid grid-cols-2 gap-2.5" role="radiogroup" aria-label="Account type">
+          {ROLES.map((r) => {
+            const selected = role === r.id;
+            return (
+              <button
+                key={r.id}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => setRole(r.id)}
+                className={cn(
+                  'rounded-2xl p-4 text-left transition-[background-color,box-shadow] duration-200 cursor-pointer',
+                  selected ? 'bg-surface ring-2 ring-fg' : 'bg-surface-2 hover:bg-surface-3',
+                )}
+              >
+                <span className={cn('grid size-9 place-items-center rounded-xl', r.tint)}>
+                  <r.icon className="size-4.5" />
+                </span>
+                <div className="mt-4 text-sm font-medium">{r.title}</div>
+                <div className="mt-0.5 text-[13px] text-muted">{r.sub}</div>
+              </button>
+            );
+          })}
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4">
@@ -214,7 +318,7 @@ export function RegisterPage() {
             </Label>
             <Input id="rpass" type="password" autoComplete="new-password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" />
           </div>
-          <Button type="submit" size="lg" className="w-full" loading={busy}>
+          <Button type="submit" size="lg" className="mt-2 w-full" loading={busy}>
             Create account
           </Button>
         </form>

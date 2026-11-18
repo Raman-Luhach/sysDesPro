@@ -2,92 +2,142 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * FlashSlot design tokens: warm paper + ink + one vermilion accent.
+ * Separation comes from fills (bg / surface / surface-2), spacing and hairlines,
+ * never from outlines or drop shadows on cards, inputs, badges or buttons.
+ */
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
   --color-fg: var(--fg);
   --color-muted: var(--muted);
   --color-brand: var(--brand);
   --color-brand-2: var(--brand-2);
   --color-accent: var(--accent);
+  --color-volt: var(--volt);
   --color-success: var(--success);
   --color-warn: var(--warn);
   --color-danger: var(--danger);
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Space Grotesk", "Inter", ui-sans-serif, sans-serif;
+  --font-sans: "Geist", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Instrument Serif", ui-serif, Georgia, serif;
+  --font-mono: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
-  --bg: #f6f6f9;
-  --surface: #ffffff;
-  --surface-2: #f0f0f5;
-  --border: #e3e3ec;
-  --fg: #12121c;
-  --muted: #6a6a80;
-  --brand: #ff4d2e;
-  --brand-2: #ff8a00;
-  --accent: #7c5cff;
-  --success: #12a150;
-  --warn: #e08a00;
-  --danger: #e11d48;
-  --shadow: 0 1px 2px rgb(16 16 32 / 0.04), 0 8px 24px -12px rgb(16 16 32 / 0.12);
+  --bg: #f3f1ec;
+  --surface: #fbfaf7;
+  --surface-2: #e9e6df;
+  --surface-3: #ddd9d0;
+  --border: #dcd8cf;
+  --fg: #121211;
+  --muted: #6e6a62;
+  --brand: #ff4f1f;
+  --brand-2: #ff7a2f;
+  --accent: #3d5afe;
+  --volt: #d8f754;
+  --success: #13804a;
+  --warn: #b26b00;
+  --danger: #d7263d;
+  /* Only for floating layers (dropdowns, popovers, toasts, chart tooltip). */
+  --shadow: 0 1px 2px rgb(18 18 17 / 0.04), 0 16px 40px -16px rgb(18 18 17 / 0.18);
   color-scheme: light;
 }
 
 .dark {
-  --bg: #09090f;
-  --surface: #12121b;
-  --surface-2: #1a1a26;
-  --border: #262636;
-  --fg: #f3f3f8;
-  --muted: #9b9bb2;
-  --brand: #ff5a3c;
-  --brand-2: #ff9a1f;
-  --accent: #8f74ff;
-  --success: #22c55e;
-  --warn: #f5a524;
-  --danger: #fb4570;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --bg: #0d0d0c;
+  --surface: #161615;
+  --surface-2: #201f1d;
+  --surface-3: #2a2926;
+  --border: #2b2a27;
+  --fg: #f3f1ec;
+  --muted: #9a968d;
+  --brand: #ff5f33;
+  --brand-2: #ff8a45;
+  --accent: #7b8cff;
+  --volt: #d8f754;
+  --success: #3dd68c;
+  --warn: #f5b04c;
+  --danger: #ff5c6c;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 20px 48px -20px rgb(0 0 0 / 0.7);
   color-scheme: dark;
 }
 
-html,
-body {
-  background: var(--bg);
-  color: var(--fg);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@layer base {
+  html,
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    letter-spacing: -0.035em;
+  }
+
+  /* Instrument Serif ships one weight: never let it be faux-bolded. */
+  .font-serif {
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .font-mono {
+    font-feature-settings: "tnum";
+  }
+
+  :where(a, button, [role="button"], summary):focus-visible {
+    outline: 2px solid var(--fg);
+    outline-offset: 2px;
+    border-radius: 8px;
+  }
 }
 
+/* Legacy names kept so nothing breaks: the gradient is gone, it's one solid accent now. */
 @utility bg-flash {
-  background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
+  background-color: var(--brand);
 }
 
 @utility text-flash {
-  background-image: linear-gradient(135deg, var(--brand), var(--brand-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--brand);
 }
 
+/* Cards no longer cast shadows. */
 @utility shadow-card {
+  box-shadow: none;
+}
+
+@utility shadow-pop {
   box-shadow: var(--shadow);
 }
 
-@utility font-display {
-  font-family: var(--font-display);
+@utility animate-marquee {
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--brand) 25%, transparent);
+  background: var(--volt);
+  color: #121211;
 }
 
 .recharts-surface:focus,
 .recharts-wrapper:focus {
   outline: none;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
 }
 
 @keyframes pulse-ring {
@@ -102,4 +152,11 @@ body {
   border-radius: 9999px;
   background: currentColor;
   animation: pulse-ring 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee,
+  .live-dot::after {
+    animation: none;
+  }
 }

@@ -20,6 +20,9 @@ function niceStep(range: number, ticks: number): number {
   return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
 }
 
+const MONO = '"Geist Mono", ui-monospace, SFMono-Regular, Menlo, monospace';
+const TICK = { fill: 'var(--muted)', fontSize: 11, fontFamily: MONO };
+
 const rupeeTick = (v: number) => (v >= 10000 ? `₹${(v / 1000).toLocaleString('en-IN', { maximumFractionDigits: 1 })}k` : `₹${v.toLocaleString('en-IN')}`);
 
 export function PriceChart({ points, floorPrice, now, currentPrice, height = 240, stepped = false }: Props) {
@@ -42,20 +45,20 @@ export function PriceChart({ points, floorPrice, now, currentPrice, height = 240
   return (
     <div style={{ height }} className="w-full select-none">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 12, right: 16, bottom: 4, left: 4 }}>
+        <AreaChart data={data} margin={{ top: 12, right: 30, bottom: 4, left: 4 }}>
           <defs>
             <linearGradient id="priceFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="var(--brand)" stopOpacity={0.02} />
+              <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.1} />
+              <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="var(--border)" strokeDasharray="3 4" vertical={false} />
+          <CartesianGrid stroke="var(--border)" strokeWidth={1} strokeDasharray="2 4" vertical={false} />
           <XAxis
             dataKey="t"
             type="number"
             domain={[first, last]}
             tickFormatter={(t) => clock(new Date(t).toISOString())}
-            tick={{ fill: 'var(--muted)', fontSize: 11 }}
+            tick={TICK}
             tickMargin={10}
             axisLine={false}
             tickLine={false}
@@ -65,28 +68,30 @@ export function PriceChart({ points, floorPrice, now, currentPrice, height = 240
             ticks={yTicks}
             domain={[yMin, yMax]}
             tickFormatter={rupeeTick}
-            tick={{ fill: 'var(--muted)', fontSize: 11 }}
+            tick={TICK}
             tickMargin={6}
             axisLine={false}
             tickLine={false}
             width={58}
           />
           <Tooltip
-            cursor={{ stroke: 'var(--muted)', strokeDasharray: '3 3' }}
-            contentStyle={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, fontSize: 12, color: 'var(--fg)', boxShadow: 'var(--shadow)' }}
-            labelStyle={{ color: 'var(--muted)', marginBottom: 2 }}
+            cursor={{ stroke: 'var(--muted)', strokeOpacity: 0.5, strokeDasharray: '2 4' }}
+            contentStyle={{ background: 'var(--surface)', border: 'none', borderRadius: 12, padding: '8px 12px', fontSize: 13, fontWeight: 500, color: 'var(--fg)', boxShadow: 'var(--shadow)' }}
+            itemStyle={{ color: 'var(--fg)', padding: 0 }}
+            labelStyle={{ color: 'var(--muted)', fontFamily: MONO, fontSize: 11, marginBottom: 2 }}
             labelFormatter={(t) => clock(new Date(Number(t)).toISOString())}
             formatter={(v) => [`₹${Number(v).toLocaleString('en-IN')}`, 'Price']}
           />
           <ReferenceLine
             y={floorPrice / 100}
             stroke="var(--success)"
-            strokeDasharray="5 5"
-            label={{ value: `Floor ${inr(floorPrice)}`, fill: 'var(--success)', fontSize: 11, fontWeight: 600, position: 'insideTopRight' }}
+            strokeOpacity={0.8}
+            strokeDasharray="4 4"
+            label={{ value: `Floor ${inr(floorPrice)}`, fill: 'var(--success)', fontSize: 11, fontFamily: MONO, fontWeight: 500, position: 'insideTopRight' }}
           />
-          <Area type={stepped ? 'stepAfter' : 'monotone'} dataKey="price" stroke="var(--brand)" strokeWidth={2.5} fill="url(#priceFill)" isAnimationActive={false} activeDot={{ r: 5, fill: 'var(--brand)', stroke: 'var(--surface)', strokeWidth: 2 }} />
-          {showNow && <ReferenceLine x={now} stroke="var(--fg)" strokeOpacity={0.35} strokeDasharray="2 4" label={{ value: 'Now', position: 'top', fill: 'var(--muted)', fontSize: 11 }} />}
-          {showNow && currentPrice !== undefined && <ReferenceDot x={now} y={currentPrice / 100} r={6} fill="var(--brand)" stroke="var(--surface)" strokeWidth={3} />}
+          <Area type={stepped ? 'stepAfter' : 'monotone'} dataKey="price" stroke="var(--brand)" strokeWidth={2} fill="url(#priceFill)" isAnimationActive={false} activeDot={{ r: 4.5, fill: 'var(--brand)', stroke: 'var(--surface)', strokeWidth: 2 }} />
+          {showNow && <ReferenceLine x={now} stroke="var(--fg)" strokeOpacity={0.35} strokeDasharray="2 4" label={{ value: 'NOW', position: 'top', fill: 'var(--muted)', fontSize: 10, fontFamily: MONO, letterSpacing: 1 }} />}
+          {showNow && currentPrice !== undefined && <ReferenceDot x={now} y={currentPrice / 100} r={5} fill="var(--brand)" stroke="var(--bg)" strokeWidth={3} />}
         </AreaChart>
       </ResponsiveContainer>
     </div>

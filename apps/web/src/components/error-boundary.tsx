@@ -25,15 +25,17 @@ export class ErrorBoundary extends Component<{ children: ReactNode; resetKey?: s
   render() {
     if (!this.state.error) return this.props.children;
     return (
-      <div className="mx-auto flex max-w-md flex-col items-center py-20 text-center">
-        <div className="grid size-14 place-items-center rounded-2xl bg-danger/10 text-danger">
-          <AlertTriangle className="size-7" />
+      <div className="mx-auto flex max-w-md flex-col items-center py-24 text-center">
+        <div className="grid size-14 place-items-center rounded-full bg-danger/10 text-danger">
+          <AlertTriangle className="size-6" />
         </div>
-        <h2 className="mt-4 font-display text-xl font-bold">Something went wrong on this page</h2>
-        <p className="mt-1 text-sm text-muted">The rest of FlashSlot is fine. Reload to try again.</p>
+        <h2 className="mt-6 font-display text-3xl font-medium tracking-[-0.04em]">
+          This page <span className="font-serif italic">tripped</span>.
+        </h2>
+        <p className="mt-2 text-[15px] text-muted">The rest of FlashSlot is fine. Reload to try again.</p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-6 inline-flex h-10 items-center gap-2 rounded-xl bg-flash px-4 text-sm font-semibold text-white cursor-pointer"
+          className="mt-8 inline-flex h-10 items-center gap-2 rounded-full bg-fg px-5 text-sm font-medium text-bg transition-colors hover:bg-fg/85 cursor-pointer"
         >
           <RotateCcw className="size-4" /> Reload page
         </button>
